@@ -1,0 +1,3 @@
+- Tests: `python -m pytest -q` from the repo root (not from `src/`).
+- Build: `npm run build`; the output is `dist/`, never commit it.
+- Do not edit `vendor/` or `*.generated.*`; regenerate with `make gen`.

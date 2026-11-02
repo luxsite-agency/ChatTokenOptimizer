@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#6b7280"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="420" fill="#ffffff"/>
+
+  <!-- session timeline -->
+  <rect x="40" y="150" width="1120" height="120" rx="14" fill="#f3f4f6" stroke="#d1d5db"/>
+  <text x="600" y="138" text-anchor="middle" font-size="15" fill="#6b7280">one Claude Code session, unchanged agent</text>
+
+  <g font-size="15" fill="#111827" text-anchor="middle">
+    <rect x="70" y="180" width="180" height="60" rx="10" fill="#ffffff" stroke="#9ca3af"/>
+    <text x="160" y="205">session starts</text>
+    <text x="160" y="226" font-size="12" fill="#6b7280">SessionStart</text>
+
+    <rect x="330" y="180" width="180" height="60" rx="10" fill="#ffffff" stroke="#9ca3af"/>
+    <text x="420" y="205">agent reads a file</text>
+    <text x="420" y="226" font-size="12" fill="#6b7280">PreToolUse: Read</text>
+
+    <rect x="590" y="180" width="180" height="60" rx="10" fill="#ffffff" stroke="#9ca3af"/>
+    <text x="680" y="205">a tool call fails</text>
+    <text x="680" y="226" font-size="12" fill="#6b7280">PostToolUse(Failure)</text>
+
+    <rect x="850" y="180" width="180" height="60" rx="10" fill="#ffffff" stroke="#9ca3af"/>
+    <text x="940" y="205">task ends</text>
+    <text x="940" y="226" font-size="12" fill="#6b7280">/session-wrapup</text>
+  </g>
+  <g stroke="#6b7280" stroke-width="1.5" marker-end="url(#a)">
+    <line x1="250" y1="210" x2="328" y2="210"/>
+    <line x1="510" y1="210" x2="588" y2="210"/>
+    <line x1="770" y1="210" x2="848" y2="210"/>
+  </g>
+
+  <!-- what the kit does, above -->
+  <g font-size="14" fill="#1f2937" text-anchor="middle">
+    <rect x="52" y="30" width="216" height="80" rx="10" fill="#eef2ff" stroke="#c7d2fe"/>
+    <text x="160" y="55" font-weight="600">economy check + facts</text>
+    <text x="160" y="76">model, effort, style, MCP load;</text>
+    <text x="160" y="95">verified project facts injected</text>
+
+    <rect x="312" y="30" width="216" height="80" rx="10" fill="#eef2ff" stroke="#c7d2fe"/>
+    <text x="420" y="55" font-weight="600">read guard</text>
+    <text x="420" y="76">file over 100 KB without offset</text>
+    <text x="420" y="95">is denied: Grep first, then a slice</text>
+
+    <rect x="572" y="30" width="216" height="80" rx="10" fill="#eef2ff" stroke="#c7d2fe"/>
+    <text x="680" y="55" font-weight="600">loop guard</text>
+    <text x="680" y="76">same action or error 3 times:</text>
+    <text x="680" y="95">one nudge to change approach</text>
+
+    <rect x="832" y="30" width="216" height="80" rx="10" fill="#eef2ff" stroke="#c7d2fe"/>
+    <text x="940" y="55" font-weight="600">wrap-up skill</text>
+    <text x="940" y="76">facts, gotchas, solutions,</text>
+    <text x="940" y="95">feedback written for next time</text>
+  </g>
+  <g stroke="#818cf8" stroke-width="1.5" stroke-dasharray="4 3">
+    <line x1="160" y1="110" x2="160" y2="178"/>
+    <line x1="420" y1="110" x2="420" y2="178"/>
+    <line x1="680" y1="110" x2="680" y2="178"/>
+    <line x1="940" y1="110" x2="940" y2="178"/>
+  </g>
+
+  <!-- what it never does, below -->
+  <g font-size="14" fill="#374151" text-anchor="middle">
+    <text x="600" y="312" font-weight="600" fill="#111827">Across sessions: tools/cto_tool_usage.py — which MCP servers a project never calls (report; deny only on request, reversible)</text>
+    <text x="600" y="352">No model calls of its own · no network · no transcript copies · state is counters and hashes only · fail-open: a hook error never blocks the agent</text>
+    <text x="600" y="382" fill="#6b7280">Python 3.9+, standard library only · Windows, macOS, Linux · Apache 2.0</text>
+  </g>
+</svg>
