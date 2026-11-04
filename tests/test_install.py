@@ -106,6 +106,28 @@ class Install(unittest.TestCase):
         run(self.home, '--uninstall')
         self.assertEqual(self.settings()['hooks']['Stop'][0]['hooks'][0]['command'], 'echo /cto/hooks/ is a nice path')
 
+    def test_cache_ttl_is_opt_in_and_validated(self):
+        bad = run(self.home, '--cache-ttl', '2h')
+        self.assertNotEqual(bad.returncode, 0)
+        self.assertIn('5m or 1h', bad.stderr + bad.stdout)
+        self.assertFalse((self.home / 'cto').exists())  # rejected before any file was touched
+        self.assertFalse((self.home / 'settings.json').exists())
+        missing = run(self.home, '--cache-ttl')
+        self.assertNotEqual(missing.returncode, 0)
+        run(self.home, '--dry-run', '--cache-ttl', '1h')
+        self.assertFalse((self.home / 'settings.json').exists())
+        run(self.home)
+        self.assertNotIn('promptCacheTtl', self.settings())
+        self.assertNotIn('subagentPromptCacheTtl', self.settings())
+        out = run(self.home, '--keep-settings', '--cache-ttl', '1h', '--subagent-cache-ttl=5m')
+        self.assertEqual(out.returncode, 0, out.stderr)
+        s = self.settings()
+        self.assertEqual((s['promptCacheTtl'], s['subagentPromptCacheTtl']), ('1h', '5m'))
+        run(self.home)  # a plain reinstall leaves the chosen lifetime alone
+        self.assertEqual(self.settings()['promptCacheTtl'], '1h')
+        run(self.home, '--uninstall')
+        self.assertEqual(self.settings()['promptCacheTtl'], '1h')
+
     def test_keep_settings_and_uninstall(self):
         (self.home / 'settings.json').write_text(json.dumps({'model': 'sonnet'}), encoding='utf-8')
         run(self.home, '--keep-settings')

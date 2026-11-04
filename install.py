@@ -4,7 +4,8 @@
   python install.py              install / update
   python install.py --dry-run    show what would change, change nothing
   python install.py --uninstall  remove the kit's hooks and files (skills and your CLAUDE.md stay)
-  options: --keep-settings (do not touch model/effort/style), --force-skills (replace skills that exist)
+  options: --keep-settings (do not touch model/effort/style), --force-skills (replace skills that exist),
+           --cache-ttl 5m|1h, --subagent-cache-ttl 5m|1h (prompt cache lifetime; opt-in, see README)
 
 What it does: copies hooks/ and tools/ to ~/.claude/cto/, skills/ to ~/.claude/skills/,
 adds the hooks to ~/.claude/settings.json (backup first, other content kept), lowers expensive
@@ -35,6 +36,10 @@ HOOKS = [
     ("PostToolUse", None, "cto_loop_guard.py", [], 10, ()),
     ("PostToolUseFailure", None, "cto_loop_guard.py", [], 10, ()),
 ]
+
+# Opt-in: the right cache lifetime depends on how the account is billed (README, "Prompt cache lifetime").
+CACHE_FLAGS = {"--cache-ttl": "promptCacheTtl", "--subagent-cache-ttl": "subagentPromptCacheTtl"}
+CACHE_VALUES = ("5m", "1h")
 
 DRY = "--dry-run" in sys.argv
 
@@ -184,6 +189,38 @@ def lower_defaults(s):
         s[k] = new
 
 
+def flag_value(flag):
+    """Value of `--flag X` or `--flag=X`; None when the flag is absent."""
+    for i, a in enumerate(sys.argv):
+        if a == flag:
+            if i + 1 >= len(sys.argv) or sys.argv[i + 1].startswith("--"):
+                sys.exit("%s needs a value: %s" % (flag, " or ".join(CACHE_VALUES)))
+            return sys.argv[i + 1]
+        if a.startswith(flag + "="):
+            return a[len(flag) + 1:]
+    return None
+
+
+def cache_ttl_requests():
+    """{settings key: value} for the cache flags given; exits on a value the API does not accept."""
+    wanted = {}
+    for flag, key in CACHE_FLAGS.items():
+        val = flag_value(flag)
+        if val is None:
+            continue
+        if val not in CACHE_VALUES:
+            sys.exit("%s: use %s, got %r" % (flag, " or ".join(CACHE_VALUES), val))
+        wanted[key] = val
+    return wanted
+
+
+def apply_cache_ttl(s, wanted):
+    for key, val in wanted.items():
+        if s.get(key) != val:
+            say("%s: %s -> %s" % (key, s.get(key, "-"), val))
+            s[key] = val
+
+
 def install():
     if sys.version_info < (3, 9):
         sys.exit("Python 3.9+ needed, found %s" % sys.version.split()[0])
@@ -194,6 +231,7 @@ def install():
         normalize_hooks(s)
     except (OSError, ValueError) as e:
         sys.exit("Cannot proceed: %s" % e)
+    cache = cache_ttl_requests()  # validated before any file is touched
     exe = interpreter()
 
     say("copy hooks/ tools/ -> " + DEST)
@@ -224,6 +262,7 @@ def install():
         say("hook %-18s %s" % (event, script))
     if "--keep-settings" not in sys.argv:
         lower_defaults(s)
+    apply_cache_ttl(s, cache)
     save_settings(s)
 
     user_md = os.path.join(CLAUDE_HOME, "CLAUDE.md")
@@ -250,7 +289,7 @@ def uninstall():
         say("remove " + DEST)
         if not DRY:
             shutil.rmtree(DEST)
-    say("skills, CLAUDE.md and the model/effort/style values were left as they are")
+    say("skills, CLAUDE.md and the model/effort/style/cache-lifetime values were left as they are")
 
 
 if __name__ == "__main__":

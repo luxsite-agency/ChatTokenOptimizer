@@ -107,8 +107,9 @@ example your own read guard) is detected and the kit's version is skipped. A mal
 the installer before it copies anything.
 
 Options: `--keep-settings` leaves model, effort and style alone; `--force-skills` replaces an existing
-`session-wrapup` skill (the old one is renamed, not deleted); `--uninstall` removes the hooks and
-`~/.claude/cto/` (skills, `CLAUDE.md` and the model/effort/style values stay as they are).
+`session-wrapup` skill (the old one is renamed, not deleted); `--cache-ttl 1h` and `--subagent-cache-ttl 1h`
+set the [prompt cache lifetime](#prompt-cache-lifetime) (opt-in); `--uninstall` removes the hooks and
+`~/.claude/cto/` (skills, `CLAUDE.md` and the model/effort/style/cache values stay as they are).
 
 Open a new chat. When everything is in order the kit is silent. Check by hand:
 
@@ -147,6 +148,33 @@ included). It never touches global settings. After `--apply`, open a new chat in
 `/context`: the denied servers' tools should be gone from the tool list. If your Claude Code version only
 blocks the calls but still lists the tools, disable those servers for the project in the connector menu
 instead; the deny list alone will not save tokens there.
+
+### Prompt cache lifetime
+
+Every turn re-sends the whole conversation, and the API bills the unchanged prefix at the cached rate only
+while the cache is warm. By default the cache lives 5 minutes on an API key, a cloud provider or subscription
+usage credits, and 1 hour for the main conversation on a Claude subscription within the plan's included usage.
+After a longer break, the next turn re-processes the full context at the standard input rate, which in a long
+session is the single most expensive request of the day.
+
+Claude Code 2.1.242+ lets you choose the lifetime: `promptCacheTtl` for the main conversation and
+`subagentPromptCacheTtl` for subagents, workflows, compaction and other helper requests. The trade-off is in
+the write price: a 1-hour cache write costs 2x the input rate against 1.25x for 5 minutes, so the hour pays
+off when you step away for more than five minutes between turns (review, a long command, a meeting) and loses
+on short bursts that never idle.
+
+The kit does not set either key on its own, because no single value is cheaper for everyone. To opt in:
+
+```bash
+python install.py --cache-ttl 1h                            # main conversation
+python install.py --cache-ttl 1h --subagent-cache-ttl 1h    # also subagents, workflows and helpers
+```
+
+Rule of thumb: on an API key, a cloud provider or usage credits, with sessions that wait on you, set
+`--cache-ttl 1h`. Set `--subagent-cache-ttl 1h` only when your subagents live long and wait on slow commands;
+a short subagent pays the 2x write and never uses the hour. Both accept `5m` to go back. The economy report
+(`python ~/.claude/cto/hooks/cto_economy.py`) shows the current values; `/usage` in Claude Code shows the TTL in
+effect and the cache misses of the session.
 
 ## Settings
 

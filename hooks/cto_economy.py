@@ -9,6 +9,8 @@
 Checks: default model (no 1M-context variant, no top-price model for routine work), effort level,
 output style, the kit's hooks, size of the current chat history since the last /compact,
 global MCP servers (their tool descriptions ride along in every turn of every chat).
+The report also shows the prompt cache lifetime keys (promptCacheTtl, subagentPromptCacheTtl); they are
+shown, not judged: the right value depends on how the account is billed (README, "Prompt cache lifetime").
 """
 import glob
 import json
@@ -180,6 +182,10 @@ def report(fix):
     for i in settings_issues(s):
         if "hook" in i or "хук" in i:
             print("  !!", i)
+    print("  %s %-12s %s" % ("--", "cache TTL", t(
+        "головний чат %s, субагенти %s (не задано = 1h на підписці в межах плану, 5m на API-ключі чи usage credits)",
+        "main %s, subagents %s (unset = 1h on a subscription within plan usage, 5m on an API key or usage credits)")
+        % (s.get("promptCacheTtl") or "-", s.get("subagentPromptCacheTtl") or "-")))
     mcp = global_mcp()
     print("  %s %-12s %s" % ("OK" if not mcp else "!!", "global MCP", ", ".join(mcp) or "0"))
     big, now = [], time.time()

@@ -55,6 +55,9 @@ the person, the discipline of being silent when nothing is wrong.
 - Settings are never "repaired": an unreadable `settings.json` stops the installer and `--fix` before any
   write, because replacing it with a minimal file would drop the person's permissions and hooks.
 - Defaults are upper bounds. `sonnet` or `low` effort is cheaper than the kit's default and stays.
+- The prompt cache lifetime is opt-in (`--cache-ttl`, `--subagent-cache-ttl`). The default already depends on
+  how the account is billed, and a 1-hour write costs 2x against 1.25x for 5 minutes, so no single value is
+  cheaper for everyone. The report shows the keys; nothing sets them without a flag.
 - The facts file is read only through a path that is inside the project and not a symlink, and it is
   injected with the note that it is data written by the project's people, not instructions.
 - Every behaviour has a test that runs the script as a subprocess, the way Claude Code runs it.
